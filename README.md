@@ -1,7 +1,7 @@
 Pascal Draw
 ==========
 
-![A Picture Drawn in PascalDraw](http://i.imgur.com/tpA8UxI.png)
+![A Picture Drawn in PascalDraw](http://i.imgur.com/N96DLxG.png)
 
 ASCII drawing canvas written in Pascal.
 

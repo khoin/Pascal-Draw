@@ -7,21 +7,30 @@ const
     cLeft = 2;
     cTop  = 2;
     cWidth= 74;
-    cHeight=23;
+    cHeight=22;
 
 {main variables}
 var x,y, lx, ly: integer;
     pix: array [0..6900] of byte;
     curcol: byte;
     size: integer;
-    keyp: boolean;
     key: char;
+    lastmsg: string;
 
+{string to integer}
 function sti ( a:string ) : integer;
 var i, code: integer;
 begin
     val(a,i,code);
     if code = 0 then sti:=i else sti:=0;
+end;
+
+{to string}
+function strr(a:integer) : string;
+var s:string;
+begin
+    str(a,s);
+    strr:=s;
 end;
 
 function Depth ( a: byte ) : char;
@@ -97,11 +106,12 @@ end;
 
 procedure WelcomeMessage;
 begin
-    GotoXY(1,initY+1); textcolor(10); ToCenter(31,6);
-    write('.------------------------------.'); ToCenter(31,5);
-    write('| Welcome to PascalDraw!       |'); ToCenter(31,4);
-    write('| Move around using arrow keys |'); ToCenter(31,3);
-    write('| Use ZXCV to draw shades      |'); ToCenter(31,2);
+    GotoXY(1,initY+1); textcolor(10); ToCenter(31,7);
+    write('.------------------------------.'); ToCenter(31,6);
+    write('| Welcome to PascalDraw!       |'); ToCenter(31,5);
+    write('| Move around using arrow keys |'); ToCenter(31,4);
+    write('| Use ZXCV to draw shades      |'); ToCenter(31,3);
+    write('| Press D to erase             |'); ToCenter(31,2);
     write('| Press Shift+D to clear (now!)|'); ToCenter(31,1);
     write('| Press Shift+S to exit.       |'); ToCenter(31,0);
     write('|------------------------------|');
@@ -154,6 +164,20 @@ var i:integer;
       end;
   end;
 
+procedure DrawPicHard;
+var i:integer;
+  begin
+      i:=0;
+      while i < size*4 do begin
+
+           GotoXY(pix[i],pix[i+1]);
+           textcolor( pix[i+3] );
+           write(Depth(pix[i+2]));
+
+          i:=i+4;
+      end;
+  end;
+
 procedure MoveCursor(d: integer);
 begin
     {Register last cursor coord and clear previous cursor stroke}
@@ -180,6 +204,107 @@ var i:integer;
       size:=0;
   end;
 
+procedure Console(s:string);
+var i:integer;
+begin
+    lastmsg:=s;
+    GotoXY(1,cHeight+3);
+    for i:=1 to 79 do write(chr(255));
+    GotoXY(1,cHeight+3); write(s);
+end;
+
+procedure RefreshCanvas;
+begin
+    clrscr; DrawBorders; DrawPicHard; DrawColors; Console(lastmsg);
+end;
+
+function FileSz(s: string) : integer;
+var f: file of byte; o: integer;
+begin
+    assign(f,'C:\'+s);
+    {$I-} reset(f); {$+}
+    if (IOResult <> 0) then begin
+         FileSz:=0;
+        end else begin
+        o:= filesize(f);
+        close(f);
+        FileSz:=o;
+        end;
+end;
+
+procedure OpenCanvas;
+var i:integer;
+    f:text;
+    filename: string[32];
+    siz: integer;
+    d: integer;
+begin
+
+   Console('Path to open project file: C:\');readln(filename);
+
+   if pos('.pd', filename) > 0 then begin
+       assign(f, 'C:\'+filename);
+       {$-} reset(f); {$+}
+       if (IOResult <> 0) then begin
+           textcolor(12);
+           Console('File not found... Or it could be some other errors');readln;
+       end else begin
+           ClearCanvas;
+           readln(f,siz);
+
+
+           textcolor(10);
+           Console('Opened project with '+strr(siz)+' drawn pixels. Enter to refresh.');
+           i:=0;
+           while not eof(f) do begin
+              size:= (i div 4)+1;
+              read(f,d);
+              pix[i] := d;
+              i:=i+1;
+           end;
+           close(f);
+           readln;
+       end;
+   end else begin
+       textcolor(12);
+       Console('File is not a PascalDraw file. Choose a .dp file.');readln;
+   end;
+   RefreshCanvas;
+end;
+
+procedure SaveCanvas;
+var i:integer;
+    f: text;
+    filename: string[32];
+begin
+    Console('Path to save project file: C:\'); readln(filename);
+
+    if pos('.pd',filename) > 0 then delete(filename,pos('.pd',filename),3);
+
+    assign(f,'C:\'+filename+'.pd');
+    {$I-}
+    rewrite(f);
+    {$I+}
+    if (IOResult <> 0) then
+      begin
+          textcolor(12);
+          Console('An error occured. Please file a bug.'); readln;
+      end else
+      begin
+          writeln(f, size);
+          for i:=0 to size*4-1 do begin
+              write(f, pix[i]);
+              if i <> size*4-1 then write(f,' ');
+          end;
+          close(f);
+          textcolor(10);
+          Console('Successfully saved to: C:\'+filename+'.pd ('+strr(FileSz(filename+'.pd'))+' bytes)');
+
+
+          readln;
+      end;
+    RefreshCanvas;
+end;
 
 {Main }
 
@@ -238,6 +363,10 @@ clrscr;
 
         {//Utils}
            if key = 'D' then ClearCanvas;
+
+        {// File I/O}
+           if key = 'I' then OpenCanvas;
+           if key = 'O' then SaveCanvas;
 
     end;
 

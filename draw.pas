@@ -106,14 +106,15 @@ end;
 
 procedure WelcomeMessage;
 begin
-    GotoXY(1,initY+1); textcolor(10); ToCenter(31,7);
-    write('.------------------------------.'); ToCenter(31,6);
-    write('| Welcome to PascalDraw!       |'); ToCenter(31,5);
-    write('| Move around using arrow keys |'); ToCenter(31,4);
-    write('| Use ZXCV to draw shades      |'); ToCenter(31,3);
-    write('| Press D to erase             |'); ToCenter(31,2);
-    write('| Press Shift+D to clear (now!)|'); ToCenter(31,1);
-    write('| Press Shift+S to exit.       |'); ToCenter(31,0);
+    GotoXY(1,initY+1); textcolor(10); ToCenter(31,8);
+    write('.------------------------------.'); ToCenter(31,7);
+    write('| Welcome to PascalDraw!       |'); ToCenter(31,6);
+    write('| Move around using arrow keys |'); ToCenter(31,5);
+    write('| Use ZXCV to draw shades      |'); ToCenter(31,4);
+    write('| Press D to erase             |'); ToCenter(31,3);
+    write('| Press Shift+D to clear (now!)|'); ToCenter(31,2);
+    write('| Press Shift+S to exit.       |'); ToCenter(31,1);
+    write('| Shift+I: Open. Shift+O: Save.|'); ToCenter(31,0);
     write('|------------------------------|');
 end;
 
@@ -222,7 +223,7 @@ function FileSz(s: string) : integer;
 var f: file of byte; o: integer;
 begin
     assign(f,'C:\'+s);
-    {$I-} reset(f); {$+}
+    {$I-} reset(f); {$I+}
     if (IOResult <> 0) then begin
          FileSz:=0;
         end else begin
@@ -242,9 +243,9 @@ begin
 
    Console('Path to open project file: C:\');readln(filename);
 
-   if pos('.pd', filename) > 0 then begin
+   if pos('.pdr', filename) > 0 then begin
        assign(f, 'C:\'+filename);
-       {$-} reset(f); {$+}
+       {$I-} reset(f); {$I+}
        if (IOResult <> 0) then begin
            textcolor(12);
            Console('File not found... Or it could be some other errors');readln;
@@ -267,7 +268,7 @@ begin
        end;
    end else begin
        textcolor(12);
-       Console('File is not a PascalDraw file. Choose a .dp file.');readln;
+       Console('File is not a PascalDraw file. Choose a .pdr file.');readln;
    end;
    RefreshCanvas;
 end;
@@ -279,9 +280,9 @@ var i:integer;
 begin
     Console('Path to save project file: C:\'); readln(filename);
 
-    if pos('.pd',filename) > 0 then delete(filename,pos('.pd',filename),3);
+    if pos('.pdr',filename) > 0 then delete(filename,pos('.pdr',filename),3);
 
-    assign(f,'C:\'+filename+'.pd');
+    assign(f,'C:\'+filename+'.pdr');
     {$I-}
     rewrite(f);
     {$I+}
@@ -298,7 +299,7 @@ begin
           end;
           close(f);
           textcolor(10);
-          Console('Successfully saved to: C:\'+filename+'.pd ('+strr(FileSz(filename+'.pd'))+' bytes)');
+          Console('Successfully saved to: C:\'+filename+'.pdr ('+strr(FileSz(filename+'.pdr'))+' bytes)');
 
 
           readln;
@@ -326,7 +327,7 @@ clrscr;
         {//Draws All the pixels}
         Textcolor(white);
         DrawPic;
-        //Draws Cursor Current Position
+        {//Draws Cursor Current Position}
         Textcolor(curcol);
         GotoXY(x,y); write('#'); GotoXY(x,y);
 

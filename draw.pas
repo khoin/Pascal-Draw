@@ -47,6 +47,22 @@ function Depth ( a: byte ) : char;
          Depth := chr(255);
 
   end;
+
+function DepthHTML ( a: byte ) : string;
+  begin
+      if a = 1 then
+         DepthHTML := '&blk14;'
+      else if a = 2 then
+         DepthHTML := '&blk12;'
+      else if a = 3 then
+         DepthHTML := '&blk34;'
+      else if a = 4 then
+         DepthHTML := '&block;'
+      else if a = 0 then
+         DepthHTML := '&nbsp;';
+
+  end;
+
 procedure DrawBorders;
 var i:integer;
 begin
@@ -140,8 +156,8 @@ var i:integer;
 procedure InsertPixel(x: integer; y:integer; dep:byte; col: byte);
   begin
      RemovePixel(x,y);
-     pix[size*4]   := x;
-     pix[size*4+1] := y;
+     pix[size*4]   := x-cLeft;
+     pix[size*4+1] := y-cTop;
      pix[size*4+2] := dep;
      pix[size*4+3] := col;
      GotoXY(x,y);
@@ -156,8 +172,8 @@ var i:integer;
   begin
       i:=0;
       while i < size*4 do begin
-         if (pix[i]=lx) and (pix[i+1]=ly) then begin
-           GotoXY(pix[i],pix[i+1]);
+         if (pix[i]=lx-cLeft) and (pix[i+1]=ly-cTop) then begin
+           GotoXY(pix[i]+cLeft,pix[i+1]+cTop);
            textcolor( pix[i+3] );
            write(Depth(pix[i+2]));
          end;
@@ -171,7 +187,7 @@ var i:integer;
       i:=0;
       while i < size*4 do begin
 
-           GotoXY(pix[i],pix[i+1]);
+           GotoXY(pix[i]+cLeft,pix[i+1]+cTop);
            textcolor( pix[i+3] );
            write(Depth(pix[i+2]));
 
@@ -280,6 +296,7 @@ var i:integer;
 begin
     Console('Path to save project file: C:\'); readln(filename);
 
+
     if pos('.pdr',filename) > 0 then delete(filename,pos('.pdr',filename),3);
 
     assign(f,'C:\'+filename+'.pdr');
@@ -305,6 +322,55 @@ begin
           readln;
       end;
     RefreshCanvas;
+end;
+
+procedure ExportHtml;
+var i:integer; j:integer; k:integer;
+    t:integer;
+    f:text; fn: string[32];
+
+begin
+   Console('Path to export TXT: C:\'); readln(fn);
+
+   assign(f, 'C:\'+fn+'.html');
+   {$I-}rewrite(f); {$I+}
+
+   if (IOResult <> 0) then begin
+       textcolor(12);
+       Console('Unable to export. Please file a bug.'); readln;
+   end else begin
+     writeln(f,'<!DOCTYPE HTML>');
+     writeln(f,'<html> <head> <meta charset=''utf-8''> ');
+     writeln(f,'</head> <body style=''font-family:monospace;line-height:1.2em;letter-spacing:1.1px;''>');
+
+       for i:=0 to cHeight do begin
+
+           write(f,'<div>');
+           for j:=0 to cWidth do begin
+
+               t:=0;
+               k:=0;
+               while (k < size*4) and (t=0) do begin
+                 if (pix[k] = j) and (pix[k+1] = i) then begin
+                     write(f,DepthHTML(pix[k+2]));
+                     t:=1;
+                 end;
+
+                 k:=k+4;
+               end;
+               if t=0 then write(f,DepthHTML(0));
+           end;
+
+           writeln(f,'</div>');
+       end;
+       writeln(f,'</body></html>');
+
+       close(f);
+       textcolor(10);
+       Console('Succesfully exported to C:\'+fn+'.html ('+strr(FileSz(fn+'.html'))+' bytes)');
+       readln;
+   end;
+  RefreshCanvas;
 end;
 
 {Main }
@@ -368,6 +434,7 @@ clrscr;
         {// File I/O}
            if key = 'I' then OpenCanvas;
            if key = 'O' then SaveCanvas;
+           if key = 'E' then ExportHtml;
 
     end;
 

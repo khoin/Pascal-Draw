@@ -137,17 +137,20 @@ end;
 procedure RemovePixel(x: integer; y:integer);
 var i:integer;
     j:integer;
+    t:integer;
   begin
    GotoXY(x,y); write(Depth(0));
 
    i:=0;
-   while i < size*4 do begin
+   t:=0;
+   while (i < size*4) and (t=0) do begin
        if (pix[i]=x) and (pix[i+1]=y) then begin
           {Shifting data}
           for j:=i to size*4-4 do begin
               pix[j] := pix[j+4];
           end;
           size:= size-1;
+          t:=1;
        end;
        i:=i+4;
    end;
@@ -161,7 +164,7 @@ procedure InsertPixel(x: integer; y:integer; dep:byte; col: byte);
      pix[size*4+2] := dep;
      pix[size*4+3] := col;
      GotoXY(x,y);
-     Textcolor(curcol);
+     Textcolor(col);
      write(Depth(dep));
 
      size:=size+1;
@@ -352,7 +355,8 @@ begin
          writeln(f,'.c13 { color:magenta } .c14 { color:yellow }');
      writeln(f,'</style>');
      writeln(f,'</head> <body style=''font-family:"Courier","Lucida Console";''>');
-     writeln(f,'<div style=''background:black; color:white; display:inline-block; float:left; border: 4px double white; ''>');
+     write(f,'<div style=''background:black; color:white; display:inline-block;');
+     writeln(f,'float:left; border: 4px double white; ''>');
 
        for i:=0 to cHeight-1 do begin
 
@@ -360,9 +364,10 @@ begin
 
                t:=0;
                k:=0;
-               write(f,'<span class="c');
+
                while (k < size*4) and (t=0) do begin
                  if (pix[k] = j) and (pix[k+1] = i) then begin
+                     write(f,'<span class="c');
                      write(f,pix[k+3]); write(f,'">');
                      write(f,DepthHTML(pix[k+2]));
                      t:=1;
@@ -371,7 +376,7 @@ begin
                  k:=k+4;
                end;
                if t=0 then begin
-                   write(f,'">');
+                   write(f,'<span>');
                    write(f,DepthHTML(0));
                end;
                write(f,'</span>');

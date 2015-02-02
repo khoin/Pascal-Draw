@@ -330,7 +330,7 @@ var i:integer; j:integer; k:integer;
     f:text; fn: string[32];
 
 begin
-   Console('Path to export TXT: C:\'); readln(fn);
+   Console('Path to export HTML: C:\'); readln(fn);
 
    assign(f, 'C:\'+fn+'.html');
    {$I-}rewrite(f); {$I+}
@@ -339,31 +339,48 @@ begin
        textcolor(12);
        Console('Unable to export. Please file a bug.'); readln;
    end else begin
-     writeln(f,'<!DOCTYPE HTML>');
+     writeln(f,'<!DOCTYPE HTML5>');
      writeln(f,'<html> <head> <meta charset=''utf-8''> ');
-     writeln(f,'</head> <body style=''font-family:monospace;line-height:1.2em;letter-spacing:1.1px;''>');
+     writeln(f,'<style>');
+         writeln(f,'.c  { color:white }');
+         writeln(f,'.c1 { color:navy } .c2 { color:green }');
+         writeln(f,'.c3 { color:teal } .c4 { color:maroon }');
+         writeln(f,'.c5 { color:purple } .c6 { color:olive }');
+         writeln(f,'.c7 { color:silver } .c8 { color:gray }');
+         writeln(f,'.c9 { color:blue } .c10 { color:lime }');
+         writeln(f,'.c11 { color:cyan } .c12 { color:red }');
+         writeln(f,'.c13 { color:magenta } .c14 { color:yellow }');
+     writeln(f,'</style>');
+     writeln(f,'</head> <body style=''font-family:"Courier","Lucida Console";''>');
+     writeln(f,'<div style=''background:black; color:white; display:inline-block; float:left; border: 4px double white; ''>');
 
-       for i:=0 to cHeight do begin
+       for i:=0 to cHeight-1 do begin
 
-           write(f,'<div>');
-           for j:=0 to cWidth do begin
+           for j:=0 to cWidth-1 do begin
 
                t:=0;
                k:=0;
+               write(f,'<span class="c');
                while (k < size*4) and (t=0) do begin
                  if (pix[k] = j) and (pix[k+1] = i) then begin
+                     write(f,pix[k+3]); write(f,'">');
                      write(f,DepthHTML(pix[k+2]));
                      t:=1;
                  end;
 
                  k:=k+4;
                end;
-               if t=0 then write(f,DepthHTML(0));
+               if t=0 then begin
+                   write(f,'">');
+                   write(f,DepthHTML(0));
+               end;
+               write(f,'</span>');
            end;
 
-           writeln(f,'</div>');
+           writeln(f,'<br>');
        end;
-       writeln(f,'</body></html>');
+
+       writeln(f,'</div></body></html>');
 
        close(f);
        textcolor(10);

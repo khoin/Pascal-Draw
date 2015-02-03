@@ -22,6 +22,10 @@ Erase the whole canvas by pressing `Shift + D`.
 Open a project file using `Shift + I` (Input).
 Saving the current project using `Shift + O` (Output).
 
+### Exporting
+Pascal Draw supports HTML exporting. Why? Because I can't really figure out how to encode properly in TXT files.
+To export, use `Shift + E` (Export). Please be reminded that exporting does NOT mean saving the project.
+
 ## Structure
 ### PascalDraw (.pdr)
 Data is separated by spaces and new-line-characters. The first chunk is the number of pixels in the project, followed by a new line `\n`.

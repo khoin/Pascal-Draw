@@ -137,22 +137,24 @@ end;
 procedure RemovePixel(x: integer; y:integer);
 var i:integer;
     j:integer;
-    t:integer;
+    a: integer;
   begin
    GotoXY(x,y); write(Depth(0));
-
+   a:=0;
    i:=0;
-   t:=0;
-   while (i < size*4) and (t=0) do begin
-       if (pix[i]=x) and (pix[i+1]=y) then begin
+   {really fucking messy code}
+   while a<>1 do begin
+     if i < size*4 then begin
+       if (pix[i]= x-cLeft) and (pix[i+1]=y-cTop) then begin
           {Shifting data}
           for j:=i to size*4-4 do begin
               pix[j] := pix[j+4];
           end;
-          size:= size-1;
-          t:=1;
+          i:=i-4;
+          size:=size-1;
        end;
        i:=i+4;
+     end else a:=1;
    end;
   end;
 
@@ -262,8 +264,11 @@ begin
 
    Console('Path to open project file: C:\');readln(filename);
 
-   if pos('.pdr', filename) > 0 then begin
-       assign(f, 'C:\'+filename);
+   if (FileSz(filename+'.pdr') > 2) or
+      ((FileSz(filename) > 2) and (pos('.pdr',filename) > 0 )) then begin
+
+       if pos('.pdr', filename) > 0 then assign(f, 'C:\'+filename)
+                                    else assign(f, 'C:\'+filename+'.pdr');
        {$I-} reset(f); {$I+}
        if (IOResult <> 0) then begin
            textcolor(12);
@@ -334,6 +339,8 @@ var i:integer; j:integer; k:integer;
 
 begin
    Console('Path to export HTML: C:\'); readln(fn);
+
+   if pos('.html',fn) > 0 then delete(fn,pos('.html',fn),3);
 
    assign(f, 'C:\'+fn+'.html');
    {$I-}rewrite(f); {$I+}
@@ -446,7 +453,7 @@ clrscr;
                'r': ChangeColor(14);
                't': ChangeColor(15);
                '0': ChangeColor(10);
-               else if abs( sti(key)-5) <6 then
+               else if (sti(key) <10) and (sti(key) > -1 ) then
                ChangeColor( sti(key));
            end;
 

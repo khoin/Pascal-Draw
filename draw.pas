@@ -136,25 +136,22 @@ begin
 end;
 
 procedure RemovePixel( x: integer; y: integer);
-var i, j, a: integer;
+var i, j: integer;
 begin
-     GotoXY(x,y); write(Depth(0));
-     a:=0;
-     i:=0;
-     {really fucking messy code}
-     while a<>1 do begin
-       if i < size*4 then begin
-         if (pix[i]= x-cLeft) and (pix[i+1]=y-cTop) then begin
+    GotoXY(x,y); write(Depth(0));
+
+    i:=0; 
+    while i < size *4 do begin
+        if (pix[i]= x-cLeft) and (pix[i+1]=y-cTop) then begin
             {Shifting data}
             for j:=i to size*4-4 do begin
                 pix[j] := pix[j+4];
             end;
-            i:=i-4;
-            size:=size-1;
-         end;
-         i:=i+4;
-       end else a:=1;
-     end;
+          i:=i-4;
+          size:=size-1;
+        end;
+        i:=i+4;
+    end;
 end;
 
 procedure InsertPixel( x: integer; y: integer; dep: byte; col: byte);
@@ -226,7 +223,7 @@ begin
     size:=0;
 end;
 
-procedure Console( s: string);
+procedure Console( s: string );
 var i: integer;
 begin
     lastmsg:= s;
@@ -342,7 +339,6 @@ procedure ExportHtml;
 var i, j, k, t: integer;
     f         : text; 
     fn        : string[32];
-
 begin
 
     Console('Path to export HTML: C:\'); 
@@ -396,8 +392,7 @@ begin
                 end;
 
                 write(f,'</span>');
-           end;
-
+            end;
            writeln(f,'<br>');
         end;
 
@@ -411,16 +406,29 @@ begin
   RefreshCanvas;
 end;
 
+procedure ConfirmExit;
+var reply: string[3];
+begin
+    TextColor(12);
+    Console('All changes will be lost. Are you sure you want to exit (y/n)? ');
+    readln(reply);
+    if copy(reply,1,1) = 'y' then key := '*' else
+    begin
+        key:='-';
+        Console('Cancelled.');
+        RefreshCanvas;
+    end;
+end;
+
 { Main }
 
 begin
-
 clrscr;
 
     {Init vars}
     size  :=0;
     curcol:=15;
-    key   :='';
+    key   :='-';
     x     := InitX;
     y     := InitY;
 
@@ -429,7 +437,7 @@ clrscr;
     DrawColors;
     WelcomeMessage;
 
-    while (key <> 'S') do
+    while (key <> '*') do
     begin
         { Draws All the pixels}
         DrawPic;
@@ -442,34 +450,36 @@ clrscr;
         key := readkey;
 
         { Keypresses}
-            case key of
-              {Cursor moving}
-                'H': MoveCursor(1);
-                'P': MoveCursor(2);
-                'K': MoveCursor(3);
-                'M': MoveCursor(4);
-              {Shading}
-                'z': InsertPixel(x,y,1,curcol);
-                'x': InsertPixel(x,y,2,curcol);
-                'c': InsertPixel(x,y,3,curcol);
-                'v': InsertPixel(x,y,4,curcol);
-              {Deleting Pixels}
-                'd': InsertPixel(x,y,0,curcol);
-              {Clear Canvas}
-                'D': ClearCanvas;
-              {Open / Save / Export}
-                'I': OpenCanvas;
-                'O': SaveCanvas;
-                'E': ExportHtml;
-              {Colors}
-                'q': ChangeColor(11);
-                'w': ChangeColor(12);
-                'e': ChangeColor(13);
-                'r': ChangeColor(14);
-                't': ChangeColor(15);
-                '0': ChangeColor(10);
-               else if (sti(key) <10) and (sti(key) > -1 ) then
-               ChangeColor( sti(key));
-            end;
+        case key of
+          { Exiting }
+            'S': ConfirmExit;
+          { Cursor moving}
+            'H': MoveCursor(1);
+            'P': MoveCursor(2);
+            'K': MoveCursor(3);
+            'M': MoveCursor(4);
+          { Shading}
+            'z': InsertPixel(x,y,1,curcol);
+            'x': InsertPixel(x,y,2,curcol);
+            'c': InsertPixel(x,y,3,curcol);
+            'v': InsertPixel(x,y,4,curcol);
+          { Deleting Pixels}
+            'd': InsertPixel(x,y,0,curcol);
+          { Clear Canvas}
+            'D': ClearCanvas;
+          { Open / Save / Export}
+            'I': OpenCanvas;
+            'O': SaveCanvas;
+            'E': ExportHtml;
+          { Colors}
+            'q': ChangeColor(11);
+            'w': ChangeColor(12);
+            'e': ChangeColor(13);
+            'r': ChangeColor(14);
+            't': ChangeColor(15);
+            '0': ChangeColor(10);
+            else if (sti(key) <10) and (sti(key) > -1 ) then
+            ChangeColor( sti(key));
+        end;
     end;
 end.

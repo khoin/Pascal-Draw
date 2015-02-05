@@ -458,7 +458,7 @@ var NWD : string;
 begin
     TextColor(11);
     Console('Configuring Figuring PascalDraw: '); readln;
-    Console('Enter new working directory FULL path (blank for unchange): '); readln(NWD);
+    Console('Enter new working directory FULL path (blank for unchange): '); writeln; readln(NWD);
     if NWD <> '' then begin
         if direxist(NWD) = 0 then begin
             TextColor(12); Console('Directory does not exist. Please create it first.'); readln;

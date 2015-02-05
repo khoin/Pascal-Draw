@@ -1,5 +1,5 @@
-program test;
-uses crt;
+program DrawPas;
+uses crt, dos;
 
 {consts}
 const
@@ -9,6 +9,7 @@ const
     cTop   = 2;
     cWidth = 74;
     cHeight= 22;
+    iCWD   = 'C:\';
 
 {main variables}
 var x, y, lx, ly: integer;
@@ -17,13 +18,39 @@ var x, y, lx, ly: integer;
     size        : integer;
     key         : char;
     lastmsg     : string;
+    CWD         : string;
+
+procedure Console( s: string );
+var i: integer;
+begin
+    lastmsg:= s;
+    GotoXY(1, cHeight+3);
+    for i:=1 to 79 do write(chr(255));
+    GotoXY(1, cHeight+3); write(s);
+end;
 
 {string to integer}
 function sti ( a: string ) : integer;
 var i, code: integer;
 begin
     val(a,i,code);
-    if code = 0 then sti:= i else sti:= 0;
+    if code = 0 then sti:= i else sti:= -9999;
+end;
+
+{Dir existence}
+function direxist ( a: string ) : integer;
+var Info: SearchRec;
+    c   : integer;
+begin
+    c:=0;
+    if copy(a, length(a), 1) = '\' then a:= copy(a, 1, length(a)-1);
+  
+    FindFirst (a, Directory, Info);
+    while (DOSError = 0) and (c = 0) do begin
+        if (Info.Attr and Directory) = Directory then c:= 1;
+        FindNext(Info);
+    end;
+    if c = 0 then direxist:= 0 else direxist:= 1;
 end;
 
 {to string}
@@ -123,16 +150,8 @@ end;
 
 procedure WelcomeMessage;
 begin
-    GotoXY(1,initY+1); textcolor(10); ToCenter(31,8);
-    write('.------------------------------.'); ToCenter(31,7);
-    write('| Welcome to PascalDraw!       |'); ToCenter(31,6);
-    write('| Move around using arrow keys |'); ToCenter(31,5);
-    write('| Use ZXCV to draw shades      |'); ToCenter(31,4);
-    write('| Press D to erase             |'); ToCenter(31,3);
-    write('| Press Shift+D to clear (now!)|'); ToCenter(31,2);
-    write('| Press Shift+S to exit.       |'); ToCenter(31,1);
-    write('| Shift+I: Open. Shift+O: Save.|'); ToCenter(31,0);
-    write('|------------------------------|');
+    textcolor(10);
+    Console('Welcome to PascalDraw! Current directory: '+CWD);
 end;
 
 procedure RemovePixel( x: integer; y: integer);
@@ -223,15 +242,6 @@ begin
     size:=0;
 end;
 
-procedure Console( s: string );
-var i: integer;
-begin
-    lastmsg:= s;
-    GotoXY(1, cHeight+3);
-    for i:=1 to 79 do write(chr(255));
-    GotoXY(1, cHeight+3); write(s);
-end;
-
 procedure RefreshCanvas;
 begin
     clrscr; DrawBorders; DrawPicHard; DrawColors; Console(lastmsg);
@@ -241,7 +251,7 @@ function FileSz(s: string) : integer;
 var f: file of byte; 
     o: integer;
 begin
-    assign(f,'C:\'+s);
+    assign(f,s);
     {$I-} reset(f); {$I+}
     if (IOResult <> 0) then begin
         FileSz:=0;
@@ -255,25 +265,26 @@ end;
 procedure OpenCanvas;
 var i       : integer;
     f       : text;
-    filename: string[32];
+    fn      : string[32];
     siz     : integer;
     d       : integer;
 begin
 
     TextColor(white);
-    Console('Path to open project file: C:\');
-    readln(filename);
+    Console('Path to open project file: '+CWD);
+    readln(fn);
 
-    if ( FileSz(filename+'.pdr') > 2) or
-       ((FileSz(filename)        > 2) and (pos('.pdr',filename) > 0 )) then 
+    if ( FileSz(CWD+fn+'.pdr') > 2) or
+       ((FileSz(CWD+fn)        > 2) and (pos('.pdr',fn) > 0 )) then 
     begin
 
-        if pos('.pdr', filename) > 0 then assign(f, 'C:\'+filename)
-                                     else assign(f, 'C:\'+filename+'.pdr');
+        if pos('.pdr', fn) > 0 then assign(f, CWD+fn)
+                                     else assign(f, CWD+fn+'.pdr');
         {$I-} reset(f); {$I+}
         if (IOResult <> 0) then begin
             textcolor(12);
-            Console('File not found... Or it could be some other errors');readln;
+            Console('File not found... Or it could be some other errors');
+            readln;
         end else begin
             ClearCanvas;
             readln(f,siz);
@@ -302,16 +313,16 @@ end;
 procedure SaveCanvas;
 var i       : integer;
     f       : text;
-    filename: string[32];
+    fn      : string[32];
 begin
 
     TextColor(white);
-    Console('Path to save project file: C:\'); 
-    readln(filename);
+    Console('Name to save project file: '+CWD); 
+    readln(fn);
 
-    if pos('.pdr',filename) > 0 then delete(filename,pos('.pdr',filename),3);
+    if pos('.pdr',fn) > 0 then delete(fn,pos('.pdr',fn),3);
 
-    assign(f,'C:\'+filename+'.pdr');
+    assign(f,CWD+fn+'.pdr');
     {$I-} rewrite(f); {$I+}
     if (IOResult <> 0) then
     begin
@@ -329,7 +340,7 @@ begin
 
         close(f);
         textcolor(10);
-        Console('Successfully saved to: C:\'+filename+'.pdr ('+strr(FileSz(filename+'.pdr'))+' bytes)');
+        Console('Successfully saved to: '+CWD+fn+'.pdr ('+strr(FileSz(CWD+fn+'.pdr'))+' bytes)');
         readln;
     end;
     RefreshCanvas;
@@ -341,12 +352,12 @@ var i, j, k, t: integer;
     fn        : string[32];
 begin
 
-    Console('Path to export HTML: C:\'); 
+    Console('Path to export HTML: '+CWD); 
     readln(fn);
 
     if pos('.html',fn) > 0 then delete(fn,pos('.html',fn),3);
 
-    assign(f, 'C:\'+fn+'.html');
+    assign(f, CWD+fn+'.html');
     {$I-} rewrite(f); {$I+}
 
     if (IOResult <> 0) then begin
@@ -400,10 +411,82 @@ begin
 
         close(f);
         textcolor(10);
-        Console('Succesfully exported to C:\'+fn+'.html ('+strr(FileSz(fn+'.html'))+' bytes)');
+        Console('Succesfully exported to '+CWD+fn+'.html ('+strr(FileSz(CWD+fn+'.html'))+' bytes)');
         readln;
     end;
   RefreshCanvas;
+end;
+
+procedure InitConfig;
+var f  : text;
+    a  : string;
+begin
+    {Init CWD, alter later when found Config file.}
+    CWD := iCWD;
+
+    if FileSz('config') > 3 then begin
+        assign(f, 'config');
+        {I-} reset(f); {I+}
+        while not eof(f) do begin
+            readln(f,a);
+            {CWD}
+            if pos('CWD=',a) > 0 then begin
+                CWD := copy(a, pos('CWD=', a) + 4, length(a) - 4);
+                {Checking backslash at end of dirname}
+                if copy(CWD, length(CWD), 1) <> '\' then CWD:= concat(CWD,'\');
+                {Checking if dir exists, if not, reset. }
+                if direxist(CWD) = 0 then CWD:= iCWD;
+            end;
+        end;  
+        close(f);
+    end else begin
+        assign(f, 'config');
+        {I-} rewrite(f); {I+}
+        if IOResult <> 0 then begin
+            TextColor(12);
+            Console('Something went wrong. Sorry.'); readln;
+        end else begin
+            {Default values}
+            write(f,'CWD=C:\');
+        end;
+        close(f);
+    end;
+end;
+
+procedure ConfigChange;
+var NWD : string;
+begin
+    TextColor(11);
+    Console('Configuring Figuring PascalDraw: '); readln;
+    Console('Enter new working directory FULL path (blank for unchange): '); readln(NWD);
+    if NWD <> '' then begin
+        if direxist(NWD) = 0 then begin
+            TextColor(12); Console('Directory does not exist. Please create it first.'); readln;
+        end else begin
+            CWD:=NWD;
+            TextColor(10); Console('Succesfully changed working directory. Exit properly to save to config file.'); readln;
+            Console('Alternatively, you can continue drawing. Just remember to exit properly.'); readln;
+            Console('Really,... Exit properly. You can''t blame us. Your fault if you don''t.'); readln;
+        end;
+    end;
+
+    Console('Done. Enter to get back to drawing!'); readln; 
+    RefreshCanvas;
+end;
+
+procedure SaveConfig;
+var f: text;
+begin
+    assign(f, 'config');
+        {I-} rewrite(f); {I+}
+        if IOResult <> 0 then begin
+            TextColor(12);
+            Console('Something went wrong. Sorry.'); readln;
+        end else begin
+            {Default values}
+            write(f,'CWD='+CWD);
+        end;
+    close(f);
 end;
 
 procedure ConfirmExit;
@@ -412,8 +495,10 @@ begin
     TextColor(12);
     Console('All changes will be lost. Are you sure you want to exit (y/n)? ');
     readln(reply);
-    if copy(reply,1,1) = 'y' then key := '*' else
-    begin
+    if copy(reply,1,1) = 'y' then begin
+        SaveConfig;
+        key := '*';
+    end else begin
         key:='-';
         Console('Cancelled.');
         RefreshCanvas;
@@ -433,6 +518,7 @@ clrscr;
     y     := InitY;
 
     {Init procs}
+    InitConfig;
     DrawBorders;
     DrawColors;
     WelcomeMessage;
@@ -471,6 +557,8 @@ clrscr;
             'I': OpenCanvas;
             'O': SaveCanvas;
             'E': ExportHtml;
+          { Utilities }
+            'U': ConfigChange;
           { Colors}
             'q': ChangeColor(11);
             'w': ChangeColor(12);

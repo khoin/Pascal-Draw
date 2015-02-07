@@ -26,8 +26,11 @@ Saving the current project using `Shift + O` (Output).
 Pascal Draw supports HTML exporting. Why? Because I can't really figure out how to encode properly in TXT files.
 To export, use `Shift + E` (Export). Please be reminded that exporting does NOT mean saving the project.
 
+### Console
+`Shift + U` to open up the console. From the console, you can access commands that may not be accessible from hotkeys.
+
 ### Configuring
-`Shift + U` starts the configuring procedure. Currently, only working directory is configurable. More will come when new features are implemented.
+`Shift + U` to open up the console, then type `config` and hit return. Currently, only working directory is configurable. More will come when new features are implemented.
 
 ## Storage
 ### PascalDraw File(.pdr)

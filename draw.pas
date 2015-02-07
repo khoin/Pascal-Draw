@@ -464,6 +464,8 @@ begin
             TextColor(12); Console('Directory does not exist. Please create it first.'); readln;
         end else begin
             CWD:=NWD;
+            {Backslash adding}
+            if copy(CWD, length(CWD), 1) <> '\' then CWD:= concat(CWD,'\');
             TextColor(10); Console('Succesfully changed working directory. Exit properly to save to config file.'); readln;
             Console('Alternatively, you can continue drawing. Just remember to exit properly.'); readln;
             Console('Really,... Exit properly. You can''t blame us. Your fault if you don''t.'); readln;
@@ -503,6 +505,22 @@ begin
         Console('Cancelled.');
         RefreshCanvas;
     end;
+end;
+
+procedure OpenConsole;
+var reply: string[255];
+begin
+    TextColor(white);
+    Console('> '); readln(reply);
+
+    case reply of
+        'export': ExportHtml;
+        'save'  : SaveCanvas;
+        'open'  : OpenCanvas;
+        'config': ConfigChange;
+        else Console('Unrecognized command: '+reply);
+    end;
+    RefreshCanvas;
 end;
 
 { Main }
@@ -558,7 +576,7 @@ clrscr;
             'O': SaveCanvas;
             'E': ExportHtml;
           { Utilities }
-            'U': ConfigChange;
+            'U': OpenConsole;
           { Colors}
             'q': ChangeColor(11);
             'w': ChangeColor(12);

@@ -32,6 +32,9 @@ To export, use `Shift + E` (Export). Please be reminded that exporting does NOT 
 ### Configuring
 `Shift + U` to open up the console, then type `config` and hit return. Currently, only working directory is configurable. More will come when new features are implemented.
 
+### Exiting
+`Shift + S` exits prompts the user before exiting the app.
+
 ## Storage
 ### PascalDraw File(.pdr)
 ***PascalDraw File*** saves PascalDraw project. It's pretty much like HTML Export but you can edit it and save it again.
